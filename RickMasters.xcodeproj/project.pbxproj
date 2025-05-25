@@ -6,6 +6,26 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		7D60A0622DE34E2B001CEDC2 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0612DE34E2B001CEDC2 /* RealmSwift */; };
+		7D60A0652DE34E3C001CEDC2 /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0642DE34E3C001CEDC2 /* PinLayout */; };
+		7D60A0682DE34F1B001CEDC2 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0612DE34E2B001CEDC2 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		7D60A0672DE34F1A001CEDC2 /* Embed Frameworks */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+				7D60A0682DE34F1B001CEDC2 /* RealmSwift in Embed Frameworks */,
+			);
+			name = "Embed Frameworks";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
 		7D60A0462DE340A6001CEDC2 /* RickMasters.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RickMasters.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -36,6 +56,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				7D60A0652DE34E3C001CEDC2 /* PinLayout in Frameworks */,
+				7D60A0622DE34E2B001CEDC2 /* RealmSwift in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,6 +90,7 @@
 				7D60A0422DE340A6001CEDC2 /* Sources */,
 				7D60A0432DE340A6001CEDC2 /* Frameworks */,
 				7D60A0442DE340A6001CEDC2 /* Resources */,
+				7D60A0672DE34F1A001CEDC2 /* Embed Frameworks */,
 			);
 			buildRules = (
 			);
@@ -78,6 +101,8 @@
 			);
 			name = RickMasters;
 			packageProductDependencies = (
+				7D60A0612DE34E2B001CEDC2 /* RealmSwift */,
+				7D60A0642DE34E3C001CEDC2 /* PinLayout */,
 			);
 			productName = RickMasters;
 			productReference = 7D60A0462DE340A6001CEDC2 /* RickMasters.app */;
@@ -107,6 +132,10 @@
 			);
 			mainGroup = 7D60A03D2DE340A6001CEDC2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				7D60A05E2DE34E2B001CEDC2 /* XCRemoteSwiftPackageReference "realm-swift" */,
+				7D60A0632DE34E3C001CEDC2 /* XCRemoteSwiftPackageReference "PinLayout" */,
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7D60A0472DE340A6001CEDC2 /* Products */;
 			projectDirPath = "";
@@ -150,7 +179,6 @@
 				INFOPLIST_FILE = RickMasters/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -178,7 +206,6 @@
 				INFOPLIST_FILE = RickMasters/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchStoryboardName = LaunchScreen;
-				INFOPLIST_KEY_UIMainStoryboardFile = Main;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -337,6 +364,38 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		7D60A05E2DE34E2B001CEDC2 /* XCRemoteSwiftPackageReference "realm-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/realm/realm-swift.git";
+			requirement = {
+				branch = master;
+				kind = branch;
+			};
+		};
+		7D60A0632DE34E3C001CEDC2 /* XCRemoteSwiftPackageReference "PinLayout" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/layoutBox/PinLayout";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 1.10.5;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		7D60A0612DE34E2B001CEDC2 /* RealmSwift */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D60A05E2DE34E2B001CEDC2 /* XCRemoteSwiftPackageReference "realm-swift" */;
+			productName = RealmSwift;
+		};
+		7D60A0642DE34E3C001CEDC2 /* PinLayout */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7D60A0632DE34E3C001CEDC2 /* XCRemoteSwiftPackageReference "PinLayout" */;
+			productName = PinLayout;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 7D60A03E2DE340A6001CEDC2 /* Project object */;
 }
