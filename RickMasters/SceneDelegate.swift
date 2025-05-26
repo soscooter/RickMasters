@@ -6,6 +6,7 @@
 //
 
 import UIKit
+import framework
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     
@@ -17,7 +18,7 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
         window = UIWindow(windowScene: windowScene)
         window?.windowScene = windowScene
         window?.makeKeyAndVisible()
-        window?.rootViewController = ViewController()
+        window?.rootViewController = StatisticViewController()
     }
     
     func sceneDidDisconnect(_ scene: UIScene) {

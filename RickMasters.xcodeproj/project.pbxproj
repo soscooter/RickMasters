@@ -10,6 +10,7 @@
 		7D60A0622DE34E2B001CEDC2 /* RealmSwift in Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0612DE34E2B001CEDC2 /* RealmSwift */; };
 		7D60A0652DE34E3C001CEDC2 /* PinLayout in Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0642DE34E3C001CEDC2 /* PinLayout */; };
 		7D60A0682DE34F1B001CEDC2 /* RealmSwift in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 7D60A0612DE34E2B001CEDC2 /* RealmSwift */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		7DD09C7E2DE4A1DC0057B0B3 /* framework in Frameworks */ = {isa = PBXBuildFile; productRef = 7DD09C7D2DE4A1DC0057B0B3 /* framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -35,6 +36,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				Info.plist,
+				Packages/framework,
 			);
 			target = 7D60A0452DE340A6001CEDC2 /* RickMasters */;
 		};
@@ -58,6 +60,7 @@
 			files = (
 				7D60A0652DE34E3C001CEDC2 /* PinLayout in Frameworks */,
 				7D60A0622DE34E2B001CEDC2 /* RealmSwift in Frameworks */,
+				7DD09C7E2DE4A1DC0057B0B3 /* framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -68,6 +71,7 @@
 			isa = PBXGroup;
 			children = (
 				7D60A0482DE340A6001CEDC2 /* RickMasters */,
+				7DD09C7C2DE4A1DC0057B0B3 /* Frameworks */,
 				7D60A0472DE340A6001CEDC2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +82,13 @@
 				7D60A0462DE340A6001CEDC2 /* RickMasters.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		7DD09C7C2DE4A1DC0057B0B3 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -103,6 +114,7 @@
 			packageProductDependencies = (
 				7D60A0612DE34E2B001CEDC2 /* RealmSwift */,
 				7D60A0642DE34E3C001CEDC2 /* PinLayout */,
+				7DD09C7D2DE4A1DC0057B0B3 /* framework */,
 			);
 			productName = RickMasters;
 			productReference = 7D60A0462DE340A6001CEDC2 /* RickMasters.app */;
@@ -394,6 +406,10 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 7D60A0632DE34E3C001CEDC2 /* XCRemoteSwiftPackageReference "PinLayout" */;
 			productName = PinLayout;
+		};
+		7DD09C7D2DE4A1DC0057B0B3 /* framework */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = framework;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

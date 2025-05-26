@@ -1,8 +1,8 @@
 //
-//  UIColorHex.swift
-//  RickMasters
+//  File.swift
+//  framework
 //
-//  Created by Алексей Румынин on 25.05.25.
+//  Created by Алексей Румынин on 26.05.25.
 //
 
 import Foundation
