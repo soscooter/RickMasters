@@ -18,9 +18,12 @@ public final class StatisticViewController: UIViewController {
         return label
     }()
     
+    private let statisticService = StatisticService()
+    
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "#F6F6F6FF")
+        statisticService.fetchUsers()
     }
     
     public override func viewDidLayoutSubviews() {

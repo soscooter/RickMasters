@@ -147,6 +147,7 @@
 			packageReferences = (
 				7D60A05E2DE34E2B001CEDC2 /* XCRemoteSwiftPackageReference "realm-swift" */,
 				7D60A0632DE34E3C001CEDC2 /* XCRemoteSwiftPackageReference "PinLayout" */,
+				7DD09C802DE5145E0057B0B3 /* XCRemoteSwiftPackageReference "RxSwift" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 7D60A0472DE340A6001CEDC2 /* Products */;
@@ -392,6 +393,14 @@
 			requirement = {
 				kind = upToNextMajorVersion;
 				minimumVersion = 1.10.5;
+			};
+		};
+		7DD09C802DE5145E0057B0B3 /* XCRemoteSwiftPackageReference "RxSwift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/ReactiveX/RxSwift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 6.9.0;
 			};
 		};
 /* End XCRemoteSwiftPackageReference section */
