@@ -28,12 +28,6 @@ public struct FontManager {
                 print("Error registering font: \(error?.takeRetainedValue().localizedDescription ?? "Unknown error")")
             }
         }
-        for family in UIFont.familyNames {
-            print(family)
-            for name in UIFont.fontNames(forFamilyName: family) {
-                print(" - \(name)")
-            }
-        }
     }
 }
 
