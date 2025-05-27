@@ -31,6 +31,7 @@ class BoolCell: UICollectionViewCell {
         label.font = UIFont.gilroyLight(ofSize: 15)
         label.numberOfLines = 2
         label.textColor = UIColor(hex: "#000000")?.withAlphaComponent(0.6)
+        label.lineBreakMode = .byWordWrapping
         return label
     }()
     
@@ -42,7 +43,6 @@ class BoolCell: UICollectionViewCell {
     
     override init(frame: CGRect) {
         super.init(frame: frame)
-        setupViews()
     }
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
@@ -55,17 +55,32 @@ class BoolCell: UICollectionViewCell {
         imageView.pin
             .vertically(16)
             .left(20)
+            .width(95)
+            .height(50)
         
         contentView.addSubview(numberLabel)
         numberLabel.pin
             .left(to: imageView.edge.right)
             .marginLeft(16)
             .top(16)
+            .sizeToFit()
         
         contentView.addSubview(arrowImageView)
         arrowImageView.pin
             .left(to: numberLabel.edge.right)
             .top(20)
+            .width(16)
+            .height(16)
+        
+        contentView.addSubview(descriptionLabel)
+        descriptionLabel.pin
+            .left(to: imageView.edge.right)
+            .marginLeft(16)
+            .top(to: numberLabel.edge.bottom)
+            .marginTop(7)
+            .right(20)
+            .minHeight(40)
+            .sizeToFit(.widthFlexible)
     }
     
     func configure(isUP: Bool,number: Int,description: String){
@@ -73,7 +88,7 @@ class BoolCell: UICollectionViewCell {
         numberLabel.text = "\(number)"
         descriptionLabel.text = description
         arrowImageView.image = isUP ? UIImage.upArrow : UIImage.downArrow
+        setupViews()
     }
-    
-    
+  
 }

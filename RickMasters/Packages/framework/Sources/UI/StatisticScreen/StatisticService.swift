@@ -34,7 +34,7 @@ struct UsersResponse: Decodable {
     let users: [User]
 }
 
-struct User: Decodable{
+struct User: Decodable, Hashable{
     let id: Int
     let sex: String
     let username: String
@@ -43,7 +43,7 @@ struct User: Decodable{
     let files: [File]
 }
 
-struct File: Decodable{
+struct File: Decodable , Hashable{
     let id: Int
     let url: String
     let type: String

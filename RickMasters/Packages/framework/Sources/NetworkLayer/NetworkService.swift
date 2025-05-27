@@ -7,6 +7,7 @@
 
 import RxSwift
 import Foundation
+import UIKit
 
 public enum NetworkError: Error {
     case invalidURL
@@ -84,4 +85,47 @@ public final class NetworkService {
             }
         }
     }
+    
+    public func downloadImage(from endpoint: Endpoint) -> Single<UIImage> {
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false) else {
+            return .error(NetworkError.invalidURL)
+        }
+        
+        components.queryItems = endpoint.queryItems
+        
+        guard let url = components.url else {
+            return .error(NetworkError.invalidURL)
+        }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = endpoint.method
+        request.allHTTPHeaderFields = endpoint.headers
+        
+        return Single<UIImage>.create { single in
+            let task = self.session.dataTask(with: request) { data, response, error in
+                if let error = error {
+                    single(.failure(NetworkError.unknown(error)))
+                    return
+                }
+                
+                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
+                    single(.failure(NetworkError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)))
+                    return
+                }
+                
+                guard let data = data, let image = UIImage(data: data) else {
+                    single(.failure(NetworkError.decodingError))
+                    return
+                }
+                
+                single(.success(image))
+            }
+            
+            task.resume()
+            return Disposables.create {
+                task.cancel()
+            }
+        }
+    }
+    
 }
