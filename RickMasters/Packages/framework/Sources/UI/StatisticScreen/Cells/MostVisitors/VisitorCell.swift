@@ -12,13 +12,10 @@ import RxSwift
 class VisitorCell: UICollectionViewCell {
     
     static let identifire: String = "VisitorCell"
-    
-    private let disposeBag: DisposeBag = .init()
-    
+        
     private let avatarImageView: UIImageView = {
         let imageView = UIImageView()
-        imageView.contentMode = .scaleAspectFill
-        imageView.layer.cornerRadius = imageView.frame.width / 2
+        imageView.contentMode = .scaleToFill
         imageView.clipsToBounds = true
         return imageView
     }()
@@ -31,9 +28,21 @@ class VisitorCell: UICollectionViewCell {
         return label
     }()
     
+    private let chevronImageView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = UIImage.chevronRight
+        imageView.contentMode = .scaleAspectFit
+        return imageView
+    }()
+    
+    private let separatorView: UIView = {
+        let view = UIView()
+        view.backgroundColor = UIColor(hex: "#EFEFEF")
+        return view
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
-        contentView.backgroundColor = .red
         setupViews()
     }
     
@@ -42,53 +51,46 @@ class VisitorCell: UICollectionViewCell {
     }
     
     private func setupViews() {
-        
-        contentView.backgroundColor = UIColor(hex: "#EFEFEF")
-        
         contentView.addSubview(avatarImageView)
-        avatarImageView.pin.left(16)
-            .vCenter()
-        
         contentView.addSubview(usernameLabel)
+        contentView.addSubview(chevronImageView)
+        contentView.addSubview(separatorView)
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        avatarImageView.pin
+            .left(16)
+            .top(12)
+            .width(38)
+            .height(38)
+        
+        avatarImageView.layer.cornerRadius = avatarImageView.frame.width / 2
+        
         usernameLabel.pin
-            .left(to: avatarImageView.edge.right)
-            .marginLeft(12)
+            .left(to: avatarImageView.edge.right).marginLeft(12)
             .vCenter()
+            .sizeToFit(.widthFlexible)
+        
+        chevronImageView.pin
+            .right(24)
+            .vCenter()
+            .height(9)
+            .width(15)
+            .sizeToFit()
     }
     
-    func configure(with imageURL: String, username: String){
-        
+    private func setupSeporator(){
+        separatorView.pin
+            .bottom().marginTop(1)
+            .height(1)
+            .width(100%)
+    }
+    
+    func configure(with imageURL: String, username: String, isLast: Bool){
+        avatarImageView.downloaded(from: imageURL)
         usernameLabel.text = username
-        
-        guard let url = URL(string: imageURL) else {
-            avatarImageView.image = UIImage(named: "nilImage")
-            return
-        }
-        
-        let networkService = NetworkService(baseURL: url)
-        
-        struct ImageEndpoint: Endpoint {
-            public let path = ""
-            public let method = "GET"
-            public let queryItems: [URLQueryItem]? = nil
-            public let headers: [String: String]? = nil
-            public let body: Data? = nil
-            
-            public init() {}
-        }
-        
-        let endpoint: Endpoint = ImageEndpoint()
-        
-        networkService.downloadImage(from: endpoint)
-            .observe(on: MainScheduler.instance)
-            .subscribe(onSuccess: { [weak self] image in
-                self?.avatarImageView.image = image
-            }, onFailure: { error in
-                print("Ошибка загрузки изображения: \(error)")
-            })
-            .disposed(by: disposeBag)
-        
+        !isLast ? setupSeporator() : ()
     }
-    
 }
-

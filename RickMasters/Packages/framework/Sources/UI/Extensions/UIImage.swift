@@ -43,4 +43,15 @@ extension UIImage{
             return UIImage()
         }
     }
+    
+    static var chevronRight: UIImage {
+        if let image = UIImage(named: "chevronRight",in: .module,compatibleWith: nil) {
+            return image
+        } else {
+            print("не работает")
+            return UIImage()
+        }
+    }
 }
+
+

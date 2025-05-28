@@ -34,10 +34,17 @@ public final class StatisticViewController: UIViewController {
             SectionItem.observers(VisitorSection(isUp: false, numberOfVisitors: 10, description:"Пользователей перестали за Вами наблюдать"))
         ]
         
+        let mostVisitedItems: [SectionItem] = [
+            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan")),
+            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan")),
+            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan"))
+            ]
+        
         let sections: [Section] = [
             
             Section(type: .visitors, items: visortBoolItems),
-            Section(type: .observers, items: observerBoolItems)
+            Section(type: .observers, items: observerBoolItems),
+            Section(type: .mostVisited, items: mostVisitedItems)
             
         ]
         
@@ -101,8 +108,12 @@ public final class StatisticViewController: UIViewController {
                 
                 switch item {
                 case .mostVisited(let mostVisited):
+                    let section = self.dataSource.snapshot().sectionIdentifiers[IndexPath.section]
+                    let items = self.dataSource.snapshot().itemIdentifiers(inSection: section)
+                    let isLast = (IndexPath.item == items.count - 1)
+                    
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VisitorCell.identifire, for: IndexPath) as? VisitorCell
-                    cell?.configure(with: mostVisited.imageUrl, username: mostVisited.username)
+                    cell?.configure(with: mostVisited.imageUrl, username: mostVisited.username, isLast: isLast)
                     return cell
                 case .visitor(let visitor):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BoolCell.identifire, for: IndexPath) as? BoolCell
@@ -132,7 +143,6 @@ public final class StatisticViewController: UIViewController {
                 return self.createVisitorSection()
             case .mostVisited:
                 return self.createMostVisitedSection()
-                // дадльще тест варик
             case .observers:
                 return self.createObserversSection()
             case .sexAge:
@@ -147,13 +157,17 @@ public final class StatisticViewController: UIViewController {
     private func createMostVisitedSection() -> NSCollectionLayoutSection{
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 16, trailing: 16)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
         
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(218))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(62))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 16
+        section.interGroupSpacing = 0
+        section.decorationItems = [
+            NSCollectionLayoutDecorationItem.background(elementKind: RoundedBackgroundView.reuseIdentifier)
+        ]
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
         return section
     }
     

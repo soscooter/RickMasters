@@ -62,8 +62,6 @@ class BoolCell: UICollectionViewCell {
             .vCenter()
             .left(20)
             .sizeToFit()
-//            .width(95)
-//            .height(50)
         
         contentView.addSubview(numberLabel)
         numberLabel.pin
@@ -105,7 +103,7 @@ class BoolCell: UICollectionViewCell {
         descriptionLabel.text = description
         arrowImageView.image = isUP ? UIImage.upArrow : UIImage.downArrow
         setupViews()
-        if isLast{
+        if !isLast{
             setupSeporator()
         }
     }
