@@ -27,12 +27,17 @@ public final class StatisticViewController: UIViewController {
         
         let visortBoolItems: [SectionItem] = [
             SectionItem.visitor(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Количество посетителей в этом месяце выросло")),
-            
+        ]
+        
+        let observerBoolItems: [SectionItem] = [
+            SectionItem.observers(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Новые наблюдатели в этом месяце")),
+            SectionItem.observers(VisitorSection(isUp: false, numberOfVisitors: 10, description:"Пользователей перестали за Вами наблюдать"))
         ]
         
         let sections: [Section] = [
             
-            Section(type: .visitors, items: visortBoolItems)
+            Section(type: .visitors, items: visortBoolItems),
+            Section(type: .observers, items: observerBoolItems)
             
         ]
         
@@ -45,24 +50,16 @@ public final class StatisticViewController: UIViewController {
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "#F6F6F6FF")
-            statisticService.fetchUsers()
-            setupCollectionView()
-            createDataSource()
-            dispayData()
+        statisticService.fetchUsers()
+        setupCollectionView()
+        createDataSource()
+        dispayData()
     }
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
         setupView()
     }
-    
-//    public override func viewDidAppear(_ animated: Bool) {
-//        super.viewDidAppear(animated)
-//        
-//        setupCollectionView()
-//        createDataSource()
-//        dispayData()
-//    }
     
     private func dispayData(){
         DispatchQueue.main.async {
@@ -74,19 +71,15 @@ public final class StatisticViewController: UIViewController {
     
     private func setupView(){
         
-//        view.addSubview(titleLabel)
+        //        view.addSubview(titleLabel)
         
-//        let safeTop = view.safeAreaInsets.top
-//        
-//        view.addSubview(titleLabel)
-//        titleLabel.pin
-//            .top(safeTop + 48)
-//            .horizontally(16)
-//            .sizeToFit()
-        
-        view.addSubview(collectionView)
-        collectionView.pin.left().right().top().bottom()
-        
+        //        let safeTop = view.safeAreaInsets.top
+        //
+        //        view.addSubview(titleLabel)
+        //        titleLabel.pin
+        //            .top(safeTop + 48)
+        //            .horizontally(16)
+        //            .sizeToFit()
         
     }
     
@@ -113,13 +106,18 @@ public final class StatisticViewController: UIViewController {
                     return cell
                 case .visitor(let visitor):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BoolCell.identifire, for: IndexPath) as? BoolCell
-                    cell?.configure(isUP: visitor.isUp, number: visitor.numberOfVisitors, description: visitor.description)
+                    cell?.configure(isUP: visitor.isUp, number: visitor.numberOfVisitors, description: visitor.description, isLast: false)
                     return cell
                 case .sexAge(let sexAge):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SexAgeCell.identifire, for: IndexPath) as? SexAgeCell
                     return cell
                 case .observers(let observer):
-                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VisitorCell.identifire, for: IndexPath) as? VisitorCell
+                    let section = self.dataSource.snapshot().sectionIdentifiers[IndexPath.section]
+                    let items = self.dataSource.snapshot().itemIdentifiers(inSection: section)
+                    let isLast = !(IndexPath.item == items.count - 1)
+                    
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BoolCell.identifire, for: IndexPath) as? BoolCell
+                    cell?.configure(isUP: observer.isUp, number: observer.numberOfVisitors, description: observer.description, isLast: isLast)
                     return cell
                 }
             }
@@ -136,11 +134,13 @@ public final class StatisticViewController: UIViewController {
                 return self.createMostVisitedSection()
                 // дадльще тест варик
             case .observers:
-                return self.createMostVisitedSection()
+                return self.createObserversSection()
             case .sexAge:
                 return self.createMostVisitedSection()
             }
         }
+        layout.register(RoundedBackgroundView.self, forDecorationViewOfKind: RoundedBackgroundView.reuseIdentifier)
+                
         return layout
     }
     
@@ -160,13 +160,35 @@ public final class StatisticViewController: UIViewController {
     private func createVisitorSection() -> NSCollectionLayoutSection{
         let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
         let item = NSCollectionLayoutItem(layoutSize: itemSize)
-        item.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
         
-        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(130))
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(98))
         let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
         
         let section = NSCollectionLayoutSection(group: group)
-        section.interGroupSpacing = 16
+        section.interGroupSpacing = 0
+        section.decorationItems = [
+            NSCollectionLayoutDecorationItem.background(elementKind: RoundedBackgroundView.reuseIdentifier)
+        ]
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        return section
+    }
+    
+    private func createObserversSection() -> NSCollectionLayoutSection{
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(98))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 0
+        section.decorationItems = [
+            NSCollectionLayoutDecorationItem.background(elementKind: RoundedBackgroundView.reuseIdentifier)
+        ]
+        section.contentInsets = NSDirectionalEdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16)
+        
         return section
     }
     
@@ -179,7 +201,6 @@ public final class StatisticViewController: UIViewController {
         }
         dataSource?.apply(snapshot, animatingDifferences: true)
     }
-    
 }
 
 struct Section: Hashable{
@@ -198,7 +219,7 @@ enum SectionItem: Hashable{
     case visitor(VisitorSection)
     case mostVisited(MostVisitedSection)
     case sexAge(SexAgeSection)
-    case observers(ObserverSection)
+    case observers(VisitorSection)
     
     func hash(into hasher: inout Hasher) {
         switch self {
@@ -232,7 +253,36 @@ struct SexAgeSection:Hashable{
     let users: [User]
 }
 
-struct ObserverSection:Hashable{
-    let id = UUID()
-    let visitors: [VisitorSection]
+class RoundedBackgroundView: UICollectionReusableView {
+    
+    private var insetView: UIView = {
+        let view = UIView()
+        view.translatesAutoresizingMaskIntoConstraints = false
+        view.backgroundColor = UIColor(hex: "#FFFFFF")
+        view.layer.cornerRadius = 16
+        view.clipsToBounds = true
+        return view
+    }()
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        backgroundColor = .clear
+        addSubview(insetView)
+        insetView.pin
+            .left(16)
+            .right(16)
+            .top(16)
+            .bottom(16)
+        
+    }
+    
+    required init?(coder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+}
+
+extension UICollectionReusableView {
+    static var reuseIdentifier: String {
+        return String(describing: Self.self)
+    }
 }

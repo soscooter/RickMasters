@@ -41,6 +41,12 @@ class BoolCell: UICollectionViewCell {
         return imageView
     }()
     
+    private let separator: UIView = {
+       let view = UIView()
+        view.backgroundColor = UIColor(hex: "#EFEFEF")
+        return view
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
     }
@@ -49,14 +55,15 @@ class BoolCell: UICollectionViewCell {
     }
     
     private func setupViews() {
-        contentView.backgroundColor = UIColor(hex: "#FFFFFF")
+        contentView.backgroundColor = UIColor(hex: "#FFFFFF")?.withAlphaComponent(0)
         
         contentView.addSubview(imageView)
         imageView.pin
-            .vertically(16)
+            .vCenter()
             .left(20)
-            .width(95)
-            .height(50)
+            .sizeToFit()
+//            .width(95)
+//            .height(50)
         
         contentView.addSubview(numberLabel)
         numberLabel.pin
@@ -81,14 +88,26 @@ class BoolCell: UICollectionViewCell {
             .right(20)
             .minHeight(40)
             .sizeToFit(.widthFlexible)
+        
     }
     
-    func configure(isUP: Bool,number: Int,description: String){
+    private func setupSeporator(){
+        contentView.addSubview(separator)
+        separator.pin
+            .bottom().marginTop(1)
+            .height(1)
+            .width(100%)
+    }
+    
+    func configure(isUP: Bool,number: Int,description: String,isLast: Bool){
         imageView.image = isUP ? UIImage.upImage : UIImage.downImage
         numberLabel.text = "\(number)"
         descriptionLabel.text = description
         arrowImageView.image = isUP ? UIImage.upArrow : UIImage.downArrow
         setupViews()
+        if isLast{
+            setupSeporator()
+        }
     }
   
 }
