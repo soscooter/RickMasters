@@ -111,6 +111,22 @@ extension UIImageView {
     }
 }
 
+struct StatisticResponse: Codable {
+    let statistics: [Statistic]
+}
+
+struct Statistic: Codable{
+    let userID: Int
+    let type: String
+    let dates: [Int]
+    
+    enum CodingKeys: String,CodingKey{
+        case userID = "user_id"
+        case type
+        case dates
+    }
+}
+
 struct UsersResponse: Codable {
     let users: [User]
 }

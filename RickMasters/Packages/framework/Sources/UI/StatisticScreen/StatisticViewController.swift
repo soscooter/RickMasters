@@ -68,9 +68,38 @@ public final class StatisticViewController: UIViewController {
         createDataSource()
         
         updateUsers()
+        updateStatistics()
     }
     
-    func updateUsers() {
+    private func updateStatistics() {
+        struct GetStatisticRequest: APIRequest {
+            var method: RequestType { return .GET }
+            var path: String { return "statistics" }
+            var parameters: [String: String] {
+                return [:]
+            }
+        }
+        
+        let request = GetStatisticRequest()
+        
+        apiClient.send(apiRequest: request)
+            .observe(on: MainScheduler.instance)
+            .subscribe(
+                onNext: { [weak self] (response: StatisticResponse) in
+                    print("Получена статистика: \(response.statistics)")
+                    self?.dispayData()
+                },
+                onError: { error in
+                    print("Ошибка: \(error.localizedDescription)")
+                    if let decodingError = error as? DecodingError {
+                        print("Детальная ошибка декодирования: \(decodingError)")
+                    }
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+    
+   private func updateUsers() {
         struct GetUsersRequest: APIRequest {
             var method: RequestType { return .GET }
             var path: String { return "users" }
