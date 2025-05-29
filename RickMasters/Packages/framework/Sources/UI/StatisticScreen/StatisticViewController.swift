@@ -41,6 +41,10 @@ public final class StatisticViewController: UIViewController {
     let segmentItems: [SectionItem] = [
         SectionItem.segmentView(Segments(segments: ["По дням", "По неделям", "По месяцам"]))
     ]
+    
+    let SexAgesegmentItems: [SectionItem] = [
+        SectionItem.segmentView(Segments(segments: ["Сегодня", "Неделя", "Месяц", "Все время"]))
+    ]
 
     private func makeSections() -> [Section] {
         let sections: [Section] = [
@@ -48,6 +52,7 @@ public final class StatisticViewController: UIViewController {
             Section(type: .visitors, items: visortBoolItems),
             Section.init(type: .segment, items: segmentItems),
             Section(type: .mostVisited, items: mostVisitedItems),
+            Section(type: .sexAgeSegment, items: SexAgesegmentItems),
             Section(type: .observers, items: observerBoolItems),
             
         ]
@@ -77,7 +82,7 @@ public final class StatisticViewController: UIViewController {
         let request = GetUsersRequest()
         
         apiClient.send(apiRequest: request)
-            .observe(on: MainScheduler.instance) // Переключаем на главный поток
+            .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] (response: UsersResponse) in
                     print("Получены пользователи: \(response.users)")
@@ -158,12 +163,11 @@ public final class StatisticViewController: UIViewController {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BoolCell.identifire, for: IndexPath) as? BoolCell
                     cell?.configure(isUP: observer.isUp, number: observer.numberOfVisitors, description: observer.description, isLast: isLast)
                     return cell
-                case .segmentView(let segment):
+                case .segmentView(let segment), .sexAgeSegmentView(let segment):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SegmentControlCell.identifire, for: IndexPath) as? SegmentControlCell
                     cell?.configure(with: segment.segments)
                     return cell
-//                case .headerView(_):
-//                    return nil
+
                 }
             }
         )
@@ -186,7 +190,7 @@ public final class StatisticViewController: UIViewController {
                 title = "Чаще всех посещают Ваш профиль"
             case .observers:
                 title = "Наблюдатели"
-            case .sexAge:
+            case .sexAgeSegment:
                 title = "Пол и возраст"
             default: title = ""
             }
@@ -210,11 +214,38 @@ public final class StatisticViewController: UIViewController {
                 return self.createMostVisitedSection()
             case .segment:
                 return self.createSegmentSection()
+            case .sexAgeSegment:
+                return self.createSexAgeSegmentSection()
             }
         }
         layout.register(RoundedBackgroundView.self, forDecorationViewOfKind: RoundedBackgroundView.reuseIdentifier)
         
         return layout
+    }
+    
+    private func createSexAgeSegmentSection() -> NSCollectionLayoutSection{
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(32))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 0
+        section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 16, trailing: 16)
+        
+        section.boundarySupplementaryItems = [
+            NSCollectionLayoutBoundarySupplementaryItem(
+                layoutSize: NSCollectionLayoutSize(
+                    widthDimension: .fractionalWidth(1),
+                    heightDimension: .absolute(24)
+                ),
+                elementKind: UICollectionView.elementKindSectionHeader,
+                alignment: .top
+            )
+        ]
+        return section
     }
     
     private func createSegmentSection() -> NSCollectionLayoutSection{
@@ -340,6 +371,7 @@ enum TypeOfSection{
     case sexAge
     case observers
     case segment
+    case sexAgeSegment
 }
 
 enum SectionItem: Hashable{
@@ -348,6 +380,7 @@ enum SectionItem: Hashable{
     case sexAge(SexAgeSection)
     case observers(VisitorSection)
     case segmentView(Segments)
+    case sexAgeSegmentView(Segments)
     
     func hash(into hasher: inout Hasher) {
         switch self {
@@ -360,6 +393,8 @@ enum SectionItem: Hashable{
         case .observers(let observer):
             hasher.combine(observer.id)
         case .segmentView(let segments):
+            hasher.combine(segments)
+        case .sexAgeSegmentView(let segments):
             hasher.combine(segments)
         }
     }
