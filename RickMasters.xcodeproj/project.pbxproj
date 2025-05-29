@@ -75,7 +75,6 @@
 			isa = PBXGroup;
 			children = (
 				7D60A0482DE340A6001CEDC2 /* RickMasters */,
-				7DD09C7C2DE4A1DC0057B0B3 /* Frameworks */,
 				7D60A0472DE340A6001CEDC2 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -86,13 +85,6 @@
 				7D60A0462DE340A6001CEDC2 /* RickMasters.app */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		7DD09C7C2DE4A1DC0057B0B3 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

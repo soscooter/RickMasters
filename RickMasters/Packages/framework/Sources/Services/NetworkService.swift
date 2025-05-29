@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  NetworkService.swift
 //  framework
 //
 //  Created by Алексей Румынин on 27.05.25.

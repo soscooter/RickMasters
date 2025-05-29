@@ -1,5 +1,5 @@
 //
-//  File.swift
+//  FontManager.swift
 //  framework
 //
 //  Created by Алексей Румынин on 26.05.25.
