@@ -25,6 +25,8 @@ public final class StatisticViewController: UIViewController {
     private var dataSource: UICollectionViewDiffableDataSource<Section,SectionItem>! = nil
     private var collectionView: UICollectionView! = nil
     
+    let refreshControl = UIRefreshControl()
+    
     private var sections: [Section] = []
     
     private var mostVisitedItems: [SectionItem] = []
@@ -71,6 +73,13 @@ public final class StatisticViewController: UIViewController {
         updateStatistics()
     }
     
+    @objc
+    private func updateData(){
+        updateUsers()
+        updateStatistics()
+        refreshControl.endRefreshing()
+    }
+    
     private func updateStatistics() {
         struct GetStatisticRequest: APIRequest {
             var method: RequestType { return .GET }
@@ -87,7 +96,7 @@ public final class StatisticViewController: UIViewController {
             .subscribe(
                 onNext: { [weak self] (response: StatisticResponse) in
                     print("Получена статистика: \(response.statistics)")
-                    self?.dispayData()
+//                    self?.dispayData()
                 },
                 onError: { error in
                     print("Ошибка: \(error.localizedDescription)")
@@ -115,9 +124,11 @@ public final class StatisticViewController: UIViewController {
             .subscribe(
                 onNext: { [weak self] (response: UsersResponse) in
                     print("Получены пользователи: \(response.users)")
+                    var items: [SectionItem] = []
                     response.users.forEach({ user in
-                        self?.mostVisitedItems.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
+                        items.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
                     })
+                    self?.mostVisitedItems = items
                     self?.dispayData()
                 },
                 onError: { error in
@@ -152,6 +163,8 @@ public final class StatisticViewController: UIViewController {
         collectionView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
         collectionView.backgroundColor = UIColor(hex: "#F6F6F6")
         collectionView.showsVerticalScrollIndicator = false
+        collectionView.refreshControl = refreshControl
+        refreshControl.addTarget(self, action: #selector(updateData), for: .valueChanged)
         view.addSubview(collectionView)
         collectionView.register(BoolCell.self, forCellWithReuseIdentifier: BoolCell.identifire)
         collectionView.register(VisitorCell.self, forCellWithReuseIdentifier: VisitorCell.identifire)
@@ -387,64 +400,6 @@ public final class StatisticViewController: UIViewController {
         }
         dataSource?.apply(snapshot, animatingDifferences: true)
     }
-}
-
-struct Section: Hashable{
-    let type: TypeOfSection
-    let items: [SectionItem]
-}
-
-enum TypeOfSection{
-    case visitors
-    case mostVisited
-    case sexAge
-    case observers
-    case segment
-    case sexAgeSegment
-}
-
-enum SectionItem: Hashable{
-    case visitor(VisitorSection)
-    case mostVisited(MostVisitedSection)
-    case sexAge(SexAgeSection)
-    case observers(VisitorSection)
-    case segmentView(Segments)
-    case sexAgeSegmentView(Segments)
-    
-    func hash(into hasher: inout Hasher) {
-        switch self {
-        case .visitor(let visitor):
-            hasher.combine(visitor.id)
-        case .mostVisited(let visiter):
-            hasher.combine(visiter.id)
-        case .sexAge(let sexAge):
-            hasher.combine(sexAge.id)
-        case .observers(let observer):
-            hasher.combine(observer.id)
-        case .segmentView(let segments):
-            hasher.combine(segments)
-        case .sexAgeSegmentView(let segments):
-            hasher.combine(segments)
-        }
-    }
-}
-
-struct Segments: Hashable{
-    let id = UUID()
-    let segments: [String]
-}
-
-struct VisitorSection:Hashable{
-    let id = UUID()
-    let isUp: Bool
-    let numberOfVisitors: Int
-    let description: String
-}
-
-struct MostVisitedSection:Hashable{
-    let id = UUID()
-    let imageUrl: String
-    let username: String
 }
 
 struct SexAgeSection:Hashable{
