@@ -115,7 +115,7 @@ struct StatisticResponse: Codable {
     let statistics: [Statistic]
 }
 
-struct Statistic: Codable{
+struct Statistic: Codable, Hashable{
     let userID: Int
     let type: String
     let dates: [Int]

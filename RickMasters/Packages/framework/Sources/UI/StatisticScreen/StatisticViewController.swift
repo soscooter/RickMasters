@@ -48,16 +48,16 @@ public final class StatisticViewController: UIViewController {
         SectionItem.segmentView(Segments(segments: ["Сегодня", "Неделя", "Месяц", "Все время"]))
     ]
     
-    let SexAgeItems: [SectionItem] = [
-        SectionItem.sexAge(SexAgeSection(users: []))
+    var SexAgeItems: [SectionItem] = [
+        SectionItem.sexAge(SexAgeSection(statistic: []))
     ]
 
     private func makeSections() -> [Section] {
         let sections: [Section] = [
             
             Section(type: .visitors, items: visortBoolItems),
-            Section.init(type: .segment, items: segmentItems),
-            Section.init(type: .sexAge, items: SexAgeItems),
+            Section(type: .segment, items: segmentItems),
+            Section(type: .sexAge, items: SexAgeItems),
             Section(type: .mostVisited, items: mostVisitedItems),
             Section(type: .sexAgeSegment, items: SexAgesegmentItems),
             Section(type: .observers, items: observerBoolItems),
@@ -101,6 +101,9 @@ public final class StatisticViewController: UIViewController {
             .subscribe(
                 onNext: { [weak self] (response: StatisticResponse) in
                     print("Получена статистика: \(response.statistics)")
+                    self?.SexAgeItems = [
+                        SectionItem.sexAge(SexAgeSection(statistic: response.statistics))
+                    ]
 //                    self?.dispayData()
                 },
                 onError: { error in
@@ -202,6 +205,7 @@ public final class StatisticViewController: UIViewController {
                     return cell
                 case .sexAge(let sexAge):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SexAgeCell.identifire, for: IndexPath) as? SexAgeCell
+                    cell?.configure(with: sexAge.statistic)
                     return cell
                 case .observers(let observer):
                     let section = self.dataSource.snapshot().sectionIdentifiers[IndexPath.section]
@@ -421,11 +425,6 @@ public final class StatisticViewController: UIViewController {
         }
         dataSource?.apply(snapshot, animatingDifferences: true)
     }
-}
-
-struct SexAgeSection:Hashable{
-    let id = UUID()
-    let users: [User]
 }
 
 class RoundedBackgroundView: UICollectionReusableView {

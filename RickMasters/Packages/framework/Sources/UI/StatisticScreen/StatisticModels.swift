@@ -42,7 +42,7 @@ enum SectionItem: Hashable{
         case .segmentView(let segments):
             hasher.combine(segments)
         case .sexAgeSegmentView(let segments):
-            hasher.combine(segments)
+            hasher.combine(segments.id)
         }
     }
 }
@@ -65,3 +65,7 @@ struct MostVisitedSection:Hashable{
     let username: String
 }
 
+struct SexAgeSection:Hashable{
+    let id = UUID()
+    let statistic: [Statistic]
+}
