@@ -17,7 +17,7 @@ let package = Package(
         // Добавляем зависимости
         .package(url: "https://github.com/layoutBox/PinLayout", .upToNextMajor(from: "1.10.0")),
         .package(url: "https://github.com/realm/realm-swift", .upToNextMajor(from: "10.42.0")),
-        .package(url: "https://github.com/ReactiveX/RxSwift", .upToNextMajor(from: "6.9.0"))
+        .package(url: "https://github.com/ReactiveX/RxSwift", .upToNextMajor(from: "6.9.0")),
     ],
     targets: [
         .target(
@@ -25,7 +25,8 @@ let package = Package(
             dependencies: [
                 .product(name: "PinLayout", package: "PinLayout"),
                 .product(name: "RealmSwift", package: "realm-swift"),
-                .product(name: "RxSwift", package: "RxSwift")
+                .product(name: "RxSwift", package: "RxSwift"),
+                .product(name: "RxCocoa", package: "RxSwift"),
             ],
             path: "Sources",
             resources: [

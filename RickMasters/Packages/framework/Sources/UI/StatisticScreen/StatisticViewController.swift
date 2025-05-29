@@ -7,9 +7,13 @@
 
 import UIKit
 import PinLayout
+import RxSwift
 
 public final class StatisticViewController: UIViewController {
     
+    private let disposeBag = DisposeBag()
+    private let apiClient = APIClient()
+        
     private let titleLabel: UILabel = {
         let label = UILabel()
         label.text = "Статистика"
@@ -23,23 +27,18 @@ public final class StatisticViewController: UIViewController {
     
     private var sections: [Section] = []
     
-    private var mockSections: [Section] {
-        
-        let visortBoolItems: [SectionItem] = [
-            SectionItem.visitor(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Количество посетителей в этом месяце выросло")),
-        ]
-        
-        let observerBoolItems: [SectionItem] = [
-            SectionItem.observers(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Новые наблюдатели в этом месяце")),
-            SectionItem.observers(VisitorSection(isUp: false, numberOfVisitors: 10, description:"Пользователей перестали за Вами наблюдать"))
-        ]
-        
-        let mostVisitedItems: [SectionItem] = [
-            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan")),
-            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan")),
-            SectionItem.mostVisited(MostVisitedSection(imageUrl: "https://img.freepik.com/free-photo/smiley-man-relaxing-outdoors_23-2148739334.jpg", username: "ivan"))
-            ]
-        
+    private var mostVisitedItems: [SectionItem] = []
+    
+    let visortBoolItems: [SectionItem] = [
+        SectionItem.visitor(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Количество посетителей в этом месяце выросло")),
+    ]
+    
+    let observerBoolItems: [SectionItem] = [
+        SectionItem.observers(VisitorSection(isUp: true, numberOfVisitors: 1356, description:"Новые наблюдатели в этом месяце")),
+        SectionItem.observers(VisitorSection(isUp: false, numberOfVisitors: 10, description:"Пользователей перестали за Вами наблюдать"))
+    ]
+    
+    private func makeSections() -> [Section] {
         let sections: [Section] = [
             
             Section(type: .visitors, items: visortBoolItems),
@@ -49,19 +48,50 @@ public final class StatisticViewController: UIViewController {
         ]
         
         return sections
-        
     }
-    
-    private let statisticService = StatisticService()
     
     public override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = UIColor(hex: "#F6F6F6FF")
-        statisticService.fetchUsers()
+        
         setupCollectionView()
         createDataSource()
-        dispayData()
+        
+        updateUsers()
     }
+    
+    func updateUsers() {
+        struct GetUsersRequest: APIRequest {
+            var method: RequestType { return .GET }
+            var path: String { return "users" }
+            var parameters: [String: String] {
+                return [:]
+            }
+        }
+        
+        let request = GetUsersRequest()
+
+        apiClient.send(apiRequest: request)
+            .observe(on: MainScheduler.instance) // Переключаем на главный поток
+            .subscribe(
+                onNext: { [weak self] (response: UsersResponse) in
+                    print("Получены пользователи: \(response.users)")
+                    response.users.forEach({ user in
+                        self?.mostVisitedItems.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
+                    })
+                    self?.dispayData()
+                },
+                onError: { error in
+                    print("Ошибка: \(error.localizedDescription)")
+                    if let decodingError = error as? DecodingError {
+                        print("Детальная ошибка декодирования: \(decodingError)")
+                    }
+                }
+            )
+            .disposed(by: disposeBag)
+    }
+    
+
     
     public override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
@@ -69,9 +99,9 @@ public final class StatisticViewController: UIViewController {
     
     private func dispayData(){
         DispatchQueue.main.async {
-            self.collectionView.setCollectionViewLayout(self.createCompostionalLayout(with: self.mockSections), animated: false)
+            self.collectionView.setCollectionViewLayout(self.createCompostionalLayout(with: self.makeSections()), animated: false)
             self.createDataSource()
-            self.reloadData(with: self.mockSections)
+            self.reloadData(with: self.makeSections())
         }
     }
     

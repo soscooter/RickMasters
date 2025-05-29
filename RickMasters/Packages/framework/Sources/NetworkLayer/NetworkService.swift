@@ -8,139 +8,54 @@
 import RxSwift
 import Foundation
 import UIKit
+import Network
+import RxCocoa
 
-public enum NetworkError: Error {
-    case invalidURL
-    case decodingError
-    case httpError(Int)
-    case unknown(Error)
+public enum RequestType: String {
+    case GET, POST
 }
 
-public protocol Endpoint {
+protocol APIRequest {
+    var method: RequestType { get }
     var path: String { get }
-    var method: String { get } // "GET", "POST", etc.
-    var queryItems: [URLQueryItem]? { get }
-    var headers: [String: String]? { get }
-    var body: Data? { get }
+    var parameters: [String : String] { get }
 }
 
-public final class NetworkService {
-    private let baseURL: URL
-    private let session: URLSession
-    
-    public init(baseURL: URL, session: URLSession = .shared) {
-        self.baseURL = baseURL
-        self.session = session
-    }
-    
-    public func request<T: Decodable>(_ endpoint: Endpoint, responseType: T.Type) -> Single<T> {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false) else {
-            return .error(NetworkError.invalidURL)
+extension APIRequest {
+    func request(with baseURL: URL) -> URLRequest {
+        guard var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false) else {
+            fatalError("Unable to create URL components")
         }
-        
-        components.queryItems = endpoint.queryItems
-        
-        guard let url = components.url else {
-            return .error(NetworkError.invalidURL)
-        }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = endpoint.method
-        request.httpBody = endpoint.body
-        request.allHTTPHeaderFields = endpoint.headers
-        
-        return Single<T>.create { single in
-            let task = self.session.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    single(.failure(NetworkError.unknown(error)))
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse else {
-                    single(.failure(NetworkError.invalidURL))
-                    return
-                }
-                
-                guard (200...299).contains(httpResponse.statusCode) else {
-                    single(.failure(NetworkError.httpError(httpResponse.statusCode)))
-                    return
-                }
-                
-                guard let data = data else {
-                    single(.failure(NetworkError.invalidURL))
-                    return
-                }
-                
-                do {
-                    let decoded = try JSONDecoder().decode(T.self, from: data)
-                    single(.success(decoded))
-                } catch {
-                    single(.failure(NetworkError.decodingError))
-                }
-            }
-            
-            task.resume()
-            return Disposables.create {
-                task.cancel()
-            }
-        }
-    }
-    
-    public func downloadImage(from endpoint: Endpoint) -> Single<UIImage> {
-        guard var components = URLComponents(url: baseURL.appendingPathComponent(endpoint.path), resolvingAgainstBaseURL: false) else {
-            return .error(NetworkError.invalidURL)
-        }
-        
-        components.queryItems = endpoint.queryItems
-        
-        guard let url = components.url else {
-            return .error(NetworkError.invalidURL)
-        }
-        
-        var request: URLRequest
-        
-        let fullURL = endpoint.path.isEmpty ? baseURL : baseURL.appendingPathComponent(endpoint.path)
 
-        // Уберите лишний "/" в конце URL
-        if fullURL.absoluteString.hasSuffix("/") {
-            let correctedURLString = String(fullURL.absoluteString.dropLast())
-            guard let correctedURL = URL(string: correctedURLString) else {
-                return .error(NetworkError.invalidURL)
-            }
-            request = URLRequest(url: correctedURL)
-        } else {
-            request = URLRequest(url: fullURL)
+        components.queryItems = parameters.map {
+            URLQueryItem(name: String($0), value: String($1))
         }
-        request.httpMethod = endpoint.method
-        request.allHTTPHeaderFields = endpoint.headers
-        
-        return Single<UIImage>.create { single in
-            let task = self.session.dataTask(with: request) { data, response, error in
-                if let error = error {
-                    single(.failure(NetworkError.unknown(error)))
-                    return
-                }
-                
-                guard let httpResponse = response as? HTTPURLResponse, (200...299).contains(httpResponse.statusCode) else {
-                    single(.failure(NetworkError.httpError((response as? HTTPURLResponse)?.statusCode ?? -1)))
-                    return
-                }
-                
-                guard let data = data, let image = UIImage(data: data) else {
-                    single(.failure(NetworkError.decodingError))
-                    return
-                }
-                
-                single(.success(image))
-            }
-            
-            task.resume()
-            return Disposables.create {
-                task.cancel()
-            }
+
+        guard let url = components.url else {
+            fatalError("Could not get url")
         }
+
+        var request = URLRequest(url: url)
+        request.httpMethod = method.rawValue
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        return request
     }
-    
+}
+
+class APIClient {
+    private let baseURL = URL(string: "http://test.rikmasters.ru/api/")!
+
+    func send<T: Codable>(apiRequest: APIRequest) -> Observable<T> {
+        let request = apiRequest.request(with: baseURL)
+        print("Отправляю запрос: \(request.url?.absoluteString ?? "Invalid URL")")
+        
+        return URLSession.shared.rx.data(request: request)
+            .map { data -> T in
+                let jsonString = String(data: data, encoding: .utf8) ?? "Invalid JSON"
+                print("Получен ответ: \(jsonString)")
+                return try JSONDecoder().decode(T.self, from: data)
+            }
+    }
 }
 
 extension UIImageView {
@@ -194,4 +109,32 @@ extension UIImageView {
         }
         downloaded(from: url, contentMode: mode)
     }
+}
+
+struct UsersResponse: Codable {
+    let users: [User]
+}
+
+struct User: Codable, Hashable{
+    let id: Int
+    let sex: String
+    let username: String
+    let isOnline: Bool
+    let age: Int
+    let files: [File]
+    
+    init(){
+        self.id = 0
+        self.age = 0
+        self.files = []
+        self.isOnline = false
+        self.username = "error"
+        self.sex = "error"
+    }
+}
+
+struct File: Codable , Hashable{
+    let id: Int
+    let url: String
+    let type: String
 }
