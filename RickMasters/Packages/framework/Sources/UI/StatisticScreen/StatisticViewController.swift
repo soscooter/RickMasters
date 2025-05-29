@@ -47,12 +47,17 @@ public final class StatisticViewController: UIViewController {
     let SexAgesegmentItems: [SectionItem] = [
         SectionItem.segmentView(Segments(segments: ["Сегодня", "Неделя", "Месяц", "Все время"]))
     ]
+    
+    let SexAgeItems: [SectionItem] = [
+        SectionItem.sexAge(SexAgeSection(users: []))
+    ]
 
     private func makeSections() -> [Section] {
         let sections: [Section] = [
             
             Section(type: .visitors, items: visortBoolItems),
             Section.init(type: .segment, items: segmentItems),
+            Section.init(type: .sexAge, items: SexAgeItems),
             Section(type: .mostVisited, items: mostVisitedItems),
             Section(type: .sexAgeSegment, items: SexAgesegmentItems),
             Section(type: .observers, items: observerBoolItems),
@@ -169,6 +174,7 @@ public final class StatisticViewController: UIViewController {
         collectionView.register(BoolCell.self, forCellWithReuseIdentifier: BoolCell.identifire)
         collectionView.register(VisitorCell.self, forCellWithReuseIdentifier: VisitorCell.identifire)
         collectionView.register(SegmentControlCell.self, forCellWithReuseIdentifier: SegmentControlCell.identifire)
+        collectionView.register(SexAgeCell.self, forCellWithReuseIdentifier: SexAgeCell.identifire)
         
         collectionView.register(SectionHeaderView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
@@ -253,7 +259,7 @@ public final class StatisticViewController: UIViewController {
             case .observers:
                 return self.createObserversSection()
             case .sexAge:
-                return self.createMostVisitedSection()
+                return self.createSexAgeSection()
             case .segment:
                 return self.createSegmentSection()
             case .sexAgeSegment:
@@ -263,6 +269,21 @@ public final class StatisticViewController: UIViewController {
         layout.register(RoundedBackgroundView.self, forDecorationViewOfKind: RoundedBackgroundView.reuseIdentifier)
         
         return layout
+    }
+    
+    private func createSexAgeSection() -> NSCollectionLayoutSection{
+        let itemSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .fractionalHeight(1))
+        let item = NSCollectionLayoutItem(layoutSize: itemSize)
+        item.contentInsets = NSDirectionalEdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0)
+        
+        let groupSize = NSCollectionLayoutSize(widthDimension: .fractionalWidth(1), heightDimension: .absolute(208))
+        let group = NSCollectionLayoutGroup.horizontal(layoutSize: groupSize, subitems: [item])
+        
+        let section = NSCollectionLayoutSection(group: group)
+        section.interGroupSpacing = 0
+        section.contentInsets = NSDirectionalEdgeInsets(top: 12, leading: 16, bottom: 16, trailing: 16)
+        
+        return section
     }
     
     private func createSexAgeSegmentSection() -> NSCollectionLayoutSection{
