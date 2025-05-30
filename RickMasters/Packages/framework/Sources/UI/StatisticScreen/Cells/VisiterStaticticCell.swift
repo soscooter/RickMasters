@@ -100,6 +100,8 @@ final class GraphView: UIView {
         return chart
     }()
     
+    private var dates: [String] = []
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         addSubview(chartView)
@@ -126,13 +128,17 @@ final class GraphView: UIView {
         // Обновляем даты на оси X
         let xAxis = chartView.xAxis
         xAxis.valueFormatter = IndexAxisValueFormatter(values: dates)
+        self.dates = dates
         xAxis.labelCount = dates.count
+        xAxis.labelFont = UIFont.gilroyLight(ofSize: 11)
+        xAxis.labelTextColor = UIColor(hex: "#A7A7B1")!
         
         let yAxis = chartView.leftAxis
         yAxis.setLabelCount(3, force: true)
         yAxis.axisMaximum = dataSet.yMax + dataSet.yMin
         yAxis.granularity = dataSet.yMax / 2
         
+        configureMarker()
         
         chartView.animate(yAxisDuration: 0.8)
     }
@@ -159,7 +165,8 @@ final class GraphView: UIView {
         xAxis.granularity = 1
         xAxis.avoidFirstLastClippingEnabled = true
         xAxis.drawGridLinesEnabled = true
-        xAxis.gridColor = UIColor.lightGray.withAlphaComponent(0.1)
+        xAxis.gridColor = UIColor.lightGray.withAlphaComponent(0)
+        xAxis.drawAxisLineEnabled = false
         
         let leftAxis = chartView.leftAxis
         leftAxis.drawLabelsEnabled = false
@@ -172,13 +179,15 @@ final class GraphView: UIView {
         leftAxis.gridLineDashPhase = 0
         leftAxis.gridColor = UIColor.lightGray.withAlphaComponent(0.3)
         leftAxis.gridLineWidth = 1
+        leftAxis.drawAxisLineEnabled = false
     }
     
     private func configureMarker() {
         let marker = VisitorMarkerView(
             color: UIColor(hex: "#E4E4E9")!,
-            font: UIFont.gilroyExtraBold(ofSize: 15),
-            textColor: UIColor(hex: "#FF2E00")!
+            font: UIFont.gilroyExtraBold(ofSize: 14),
+            textColor: UIColor(hex: "#FF2E00")!,
+            dates: self.dates
         )
         marker.chartView = chartView
         chartView.marker = marker
@@ -186,31 +195,102 @@ final class GraphView: UIView {
 }
 
 final class VisitorMarkerView: MarkerView {
-    private let label = UILabel()
+    private let countLabel = UILabel()
+    private let dateLabel = UILabel()
     
-    init(color: UIColor, font: UIFont, textColor: UIColor) {
+    var dates: [String]
+    
+    init(color: UIColor, font: UIFont, textColor: UIColor,dates: [String]) {
+        self.dates = dates
         super.init(frame: .zero)
-        backgroundColor = color
-        layer.cornerRadius = 8
-        layer.borderColor = UIColor.lightGray.cgColor
+        backgroundColor = UIColor(hex: "#FFFFFF")
+        layer.cornerRadius = 12
+        layer.borderColor = UIColor(hex: "#E4E4E9")?.cgColor
         layer.borderWidth = 1
         
-        label.font = font
-        label.textColor = textColor
-        label.textAlignment = .center
-        label.numberOfLines = 2
-        addSubview(label)
+        countLabel.font = font
+        countLabel.textColor = textColor
+        countLabel.numberOfLines = 1
+        countLabel.textAlignment = .left
+        
+        // Настройка label для даты
+        dateLabel.font = UIFont.gilroyLight(ofSize: 13)
+        dateLabel.textColor = UIColor(hex: "#000000")
+        dateLabel.numberOfLines = 1
+        dateLabel.textAlignment = .left
+        
+        addSubview(countLabel)
+
+        addSubview(dateLabel)
+
+    }
+    
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        
+        countLabel.pin
+            .top(16)
+            .horizontally(16)
+            .sizeToFit(.width)
+
+        dateLabel.pin
+            .below(of: countLabel)
+            .marginTop(8)
+            .horizontally(16)
+            .bottom(16)
+            .sizeToFit(.width)
     }
     
     required init?(coder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
     }
     
+    private func pluralForm(for count: Int) -> String {
+        let remainder10 = count % 10
+        let remainder100 = count % 100
+
+        if remainder10 == 1 && remainder100 != 11 {
+            return "посетитель"
+        } else if (2...4).contains(remainder10) && !(12...14).contains(remainder100) {
+            return "посетителя"
+        } else {
+            return "посетителей"
+        }
+    }
+    
+    private func formatDate(from input: String) -> String {
+        let inputFormatter = DateFormatter()
+        inputFormatter.dateFormat = "d.MM"
+        inputFormatter.locale = Locale(identifier: "ru_RU")
+
+        let outputFormatter = DateFormatter()
+        outputFormatter.dateFormat = "d MMMM"
+        outputFormatter.locale = Locale(identifier: "ru_RU")
+
+        if let date = inputFormatter.date(from: input) {
+            return outputFormatter.string(from: date)
+        } else {
+            return input
+        }
+    }
+    
     override func refreshContent(entry: ChartDataEntry, highlight: Highlight) {
-        label.text = "\(Int(entry.y)) посетителей"
-        label.sizeToFit()
-        label.pin.width(128).height(72)
-        frame.size = CGSize(width: label.frame.width, height: label.frame.height)
+        let dateIndex = Int(entry.x)
+            guard dateIndex >= 0 && dateIndex < dates.count else { return }
+
+            let count = Int(entry.y)
+            let dateString = dates[dateIndex]
+
+            countLabel.text = "\(count) \(pluralForm(for: count))"
+            dateLabel.text = formatDate(from: dateString)
+
+            setNeedsLayout()
+            layoutIfNeeded()
+        frame.size = CGSize(
+            width: 135,
+            height: 72
+        )
+        
     }
     
     override func offsetForDrawing(atPoint point: CGPoint) -> CGPoint {
@@ -221,9 +301,5 @@ final class VisitorMarkerView: MarkerView {
         super.draw(context: context, point: point)
         self.center = CGPoint(x: point.x, y: point.y + offsetForDrawing(atPoint: point).y)
     }
-    
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        label.pin.all(8)
-    }
 }
+
