@@ -28,7 +28,7 @@ let package = Package(
                 .product(name: "RealmSwift", package: "realm-swift"),
                 .product(name: "RxSwift", package: "RxSwift"),
                 .product(name: "RxCocoa", package: "RxSwift"),
-                .product(name: "Charts", package: "DGCharts"),
+                .product(name: "DGCharts", package: "DGCharts"),
             ],
             path: "Sources",
             resources: [

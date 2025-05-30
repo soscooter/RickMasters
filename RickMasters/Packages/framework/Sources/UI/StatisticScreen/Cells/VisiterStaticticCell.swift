@@ -52,22 +52,17 @@ class VisiterStaticticCell: UICollectionViewCell {
         var formattedDates = [String]()
         var entries = [ChartDataEntry]()
         
-        // Сортируем даты
         let sortedDates = dateCounts.sorted { $0.key < $1.key }
         
-        // Обрабатываем каждую дату
         for (index, item) in sortedDates.enumerated() {
             let dateString = String(item.key)
             let formattedDate: String
             
-            // Обрабатываем 7-значные даты (dMMyyyy)
             if dateString.count == 7 {
                 let day = String(dateString.prefix(1))
                 let month = String(dateString.dropFirst(1).prefix(2))
-                let year = String(dateString.dropFirst(3))
                 formattedDate = "\(day).\(month)"
             }
-            // Обрабатываем 8-значные даты (ddMMyyyy)
             else if dateString.count == 8 {
                 let day = String(dateString.prefix(2))
                 let month = String(dateString.dropFirst(2).prefix(2))

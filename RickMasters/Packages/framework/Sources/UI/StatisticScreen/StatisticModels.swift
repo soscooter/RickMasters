@@ -19,6 +19,7 @@ enum TypeOfSection{
     case observers
     case segment
     case sexAgeSegment
+    case sexAge
 }
 
 enum SectionItem: Hashable{
@@ -28,6 +29,7 @@ enum SectionItem: Hashable{
     case observers(VisitorSection)
     case segmentView(Segments)
     case sexAgeSegmentView(Segments)
+    case sexAge(SexAgeSection)
     
     func hash(into hasher: inout Hasher) {
         switch self {
@@ -43,6 +45,8 @@ enum SectionItem: Hashable{
             hasher.combine(segments)
         case .sexAgeSegmentView(let segments):
             hasher.combine(segments.id)
+        case .sexAge(let sexAge):
+            hasher.combine(sexAge.id)
         }
     }
 }
@@ -68,4 +72,7 @@ struct MostVisitedSection:Hashable{
 struct visitorStatisticSection:Hashable{
     let id = UUID()
     let statistic: [Statistic]
+}
+struct SexAgeSection:Hashable{
+    let id = UUID()
 }
