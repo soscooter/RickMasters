@@ -76,3 +76,68 @@ struct visitorStatisticSection:Hashable{
 struct SexAgeSection:Hashable{
     let id = UUID()
 }
+
+struct StatisticResponse: Codable {
+    let statistics: [Statistic]
+}
+
+struct Statistic: Codable, Hashable{
+    let userID: Int
+    let type: String
+    let dates: [Int]
+    
+    enum CodingKeys: String,CodingKey{
+        case userID = "user_id"
+        case type
+        case dates
+    }
+}
+
+struct UsersResponse: Codable {
+    let users: [User]
+}
+
+struct User: Codable, Hashable{
+    let id: Int
+    let sex: Gender
+    let username: String
+    let isOnline: Bool
+    let age: Int
+    let files: [File]
+    
+    init(){
+        self.id = 0
+        self.age = 0
+        self.files = []
+        self.isOnline = false
+        self.username = "error"
+        self.sex = Gender.female
+    }
+    
+    init(age: Int, sex: Gender){
+        self.id = 0
+        self.age = age
+        self.files = []
+        self.isOnline = false
+        self.username = "error"
+        self.sex = sex
+    }
+}
+
+
+enum Gender: String, Codable {
+    case male = "M"
+    case female = "W"
+}
+
+struct File: Codable , Hashable{
+    let id: Int
+    let url: String
+    let type: String
+}
+
+struct AgeGroupStat {
+    let ageGroup: String
+    let malePercent: Double
+    let femalePercent: Double
+}

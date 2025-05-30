@@ -39,8 +39,7 @@ class SexAgeCell: UICollectionViewCell {
         
         let mockMale = 40
         let mockFemale = 60
-        let mockAgeDistribution = [10, 20, 5, 0, 5, 10, 0]
-        configure(male: mockMale, female: mockFemale, ageDistribution: mockAgeDistribution)
+        configure(male: mockMale, female: mockFemale)
         
     }
     
@@ -93,11 +92,58 @@ class SexAgeCell: UICollectionViewCell {
         ageChart.pin.below(of: legend).marginTop(8).horizontally(16).bottom(16)
     }
     
-    func configure(male: Int, female: Int, ageDistribution: [Int]) {
+    func calculateAgeGroupStats(users: [User]) -> [AgeGroupStat] {
+        let totalCount = users.count
+        guard totalCount > 0 else { return [] }
+
+        let ageGroups = [
+            ("18–21", 18...21),
+            ("22–25", 22...25),
+            ("26–30", 26...30),
+            ("31–35", 31...35),
+            ("36–40", 36...40),
+            ("40–50", 41...50),
+            (">50", 51...150)
+        ]
+
+        var result: [AgeGroupStat] = []
+
+        for (title, range) in ageGroups {
+            let groupUsers = users.filter { range.contains($0.age) }
+            let groupTotal = Double(groupUsers.count)
+            guard groupTotal > 0 else {
+                result.append(.init(ageGroup: title, malePercent: 0, femalePercent: 0))
+                continue
+            }
+
+            let maleCount = Double(groupUsers.filter { $0.sex == .male }.count)
+            let femaleCount = groupTotal - maleCount
+
+            let malePercent = (maleCount / Double(totalCount)) * 100
+            let femalePercent = (femaleCount / Double(totalCount)) * 100
+
+            result.append(.init(ageGroup: title, malePercent: malePercent, femalePercent: femalePercent))
+        }
+
+        return result
+    }
+    
+    func configure(male: Int, female: Int) {
         pieChart.configure(male: CGFloat(Int(Double(male))), female: CGFloat(Int(Double(female))))
         maleLegend.text = "Мужчины \(male)%"
         femaleLegend.text = "Женщины \(female)%"
-        ageChart.configure(with: ageDistribution)
+        let users: [User] = [
+            User(age: 20, sex: .male),
+            User(age: 20, sex: .female),
+            User(age: 23, sex: .male),
+            User(age: 31, sex: .male),
+            User(age: 35, sex: .female),
+            User(age: 52, sex: .female),
+            // ...другие пользователи
+        ]
+
+        let stats = calculateAgeGroupStats(users: users)
+        ageChart.configure(with: stats)
     }
 }
 
@@ -110,7 +156,7 @@ final class GenderPieChartView: UIView {
     private let femaleColor = UIColor(hex: "#FFAD8A")
     
     private let lineWidth: CGFloat = 6
-    private let spacingAngle: CGFloat = .pi / 180 * 8  // 6 градусов (в обе стороны даст 12 между сегментами)
+    private let spacingAngle: CGFloat = .pi / 180 * 8
     
     func configure(male: CGFloat, female: CGFloat) {
         self.maleValue = male
@@ -156,11 +202,12 @@ final class GenderPieChartView: UIView {
 }
 
 final class AgeDistributionChartView: UIView {
-    private var bars: [UIProgressView] = []
-    private var labels: [UILabel] = []
-    private var percents: [UILabel] = []
-    
-    let ageGroups = ["18–21", "22–25", "26–30", "31–35", "36–40", "40–50", ">50"]
+    private var rows: [UIView] = []
+    private let rowHeight: CGFloat = 45
+    private let barMaxWidth: CGFloat = 200
+    private let groupLabelWidth: CGFloat = 40
+    private let minBarWidth: CGFloat = 8 // Минимальная ширина для отображения точки
+    private let ageGroups = ["18–21", "22–25", "26–30", "31–35", "36–40", "40–50", ">50"]
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -172,46 +219,135 @@ final class AgeDistributionChartView: UIView {
     }
     
     private func setup() {
-        for _ in 0..<ageGroups.count {
-            let label = UILabel()
-            label.font = UIFont.boldSystemFont(ofSize: 12)
-            label.textColor = .black
+        // Создаем строки для каждой возрастной группы
+        for ageGroup in ageGroups {
+            let rowView = UIView()
+            addSubview(rowView)
             
-            let bar = UIProgressView(progressViewStyle: .default)
-            bar.trackTintColor = UIColor.clear
-            bar.progressTintColor = UIColor(hex: "#FF2E00")
+            // Лейбл возрастной группы (слева)
+            let groupLabel = UILabel()
+            groupLabel.text = ageGroup
+            groupLabel.font = UIFont.gilroyExtraBold(ofSize: 13)
+            groupLabel.textColor = .black
+            groupLabel.textAlignment = .right
+            rowView.addSubview(groupLabel)
             
-            let percent = UILabel()
-            percent.font = UIFont.systemFont(ofSize: 12)
-            percent.textColor = .black
-            percent.textAlignment = .right
+            // Контейнер для баров (справа от лейбла)
+            let barsContainer = UIView()
+            rowView.addSubview(barsContainer)
             
-            addSubview(label)
-            addSubview(bar)
-            addSubview(percent)
-            
-            labels.append(label)
-            bars.append(bar)
-            percents.append(percent)
+            rows.append(rowView)
         }
     }
     
-    func configure(with data: [Int]) {
-        for (index, percent) in data.enumerated() {
-            labels[index].text = ageGroups[index]
-            bars[index].setProgress(Float(percent) / 100.0, animated: false)
-            percents[index].text = "\(percent)%"
+    func configure(with stats: [AgeGroupStat]) {
+        for (index, stat) in stats.enumerated() {
+            guard index < rows.count else { break }
+            
+            let rowView = rows[index]
+            let barsContainer = rowView.subviews[1] // 0 - groupLabel, 1 - barsContainer
+            
+            // Очищаем контейнер баров перед добавлением новых
+            barsContainer.subviews.forEach { $0.removeFromSuperview() }
+            
+            // Мужской бар (оранжевый)
+            let maleBar = UIView()
+            maleBar.backgroundColor = UIColor(hex: "#FF2E00")
+            maleBar.layer.cornerRadius = 4
+            maleBar.layer.masksToBounds = true
+            barsContainer.addSubview(maleBar)
+            
+            // Процент для мужчин (всегда показываем, даже 0%)
+            let malePercent = UILabel()
+            malePercent.text = "\(Int(round(stat.malePercent)))%"
+            malePercent.font = UIFont.systemFont(ofSize: 10)
+            malePercent.textColor = UIColor.black
+            barsContainer.addSubview(malePercent)
+            
+            // Женский бар (светло-оранжевый)
+            let femaleBar = UIView()
+            femaleBar.backgroundColor = UIColor(hex: "#FFAD8A")
+            femaleBar.layer.cornerRadius = 4
+            femaleBar.layer.masksToBounds = true
+            barsContainer.addSubview(femaleBar)
+            
+            // Процент для женщин (всегда показываем, даже 0%)
+            let femalePercent = UILabel()
+            femalePercent.text = "\(Int(round(stat.femalePercent)))%"
+            femalePercent.font = UIFont.systemFont(ofSize: 10)
+            femalePercent.textColor = UIColor.black
+            barsContainer.addSubview(femalePercent)
+            
+            // Рассчитываем ширину баров (но не меньше minBarWidth)
+            let maleWidth = max(minBarWidth, barMaxWidth * CGFloat(stat.malePercent / 100))
+            let femaleWidth = max(minBarWidth, barMaxWidth * CGFloat(stat.femalePercent / 100))
+            
+            // Расположение элементов
+            maleBar.pin
+                .top(13)
+                .left(30)
+                .width(maleWidth)
+                .height(8)
+            
+            malePercent.pin
+                .after(of: maleBar)
+                .marginLeft(4)
+                .sizeToFit()
+                .vCenter(to: maleBar.edge.vCenter)
+            
+            femaleBar.pin
+                .below(of: maleBar)
+                .marginTop(5)
+                .left(30)
+                .width(femaleWidth)
+                .height(8)
+            
+            femalePercent.pin
+                .after(of: femaleBar)
+                .marginLeft(4)
+                .sizeToFit()
+                .vCenter(to: femaleBar.edge.vCenter)
+            
+            // Если процент равен 0, делаем бар круглой точкой
+            if stat.malePercent == 0 {
+                maleBar.pin.width(8).height(8)
+                maleBar.layer.cornerRadius = 4
+            }
+            
+            if stat.femalePercent == 0 {
+                femaleBar.pin.width(8).height(8)
+                femaleBar.layer.cornerRadius = 4
+            }
         }
     }
     
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        for i in 0..<ageGroups.count {
-            let top = CGFloat(i) * 32
-            labels[i].pin.top(top).left(0).width(50).height(20)
-            bars[i].pin.after(of: labels[i], aligned: .center).marginLeft(8).width(100).height(4)
-            percents[i].pin.after(of: bars[i], aligned: .center).marginLeft(8).right(0).height(20)
+        // Распределяем строки с фиксированными отступами
+        for (index, row) in rows.enumerated() {
+            let groupLabel = row.subviews[0] as! UILabel
+            let barsContainer = row.subviews[1]
+            
+            // Позиционируем всю строку
+            row.pin
+                .top(CGFloat(index) * rowHeight)
+                .horizontally(16) // Отступы слева и справа
+                .height(rowHeight)
+            
+            // Лейбл возрастной группы (слева)
+            groupLabel.pin
+                .left()
+                .width(groupLabelWidth)
+                .vCenter()
+                .height(16)
+            
+            // Контейнер с барами (справа от лейбла)
+            barsContainer.pin
+                .after(of: groupLabel)
+                .marginLeft(8)
+                .right()
+                .height(rowHeight)
         }
     }
 }
