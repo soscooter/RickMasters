@@ -48,16 +48,14 @@ public final class StatisticViewController: UIViewController {
         SectionItem.segmentView(Segments(segments: ["Сегодня", "Неделя", "Месяц", "Все время"]))
     ]
     
-    var SexAgeItems: [SectionItem] = [
-        SectionItem.sexAge(SexAgeSection(statistic: []))
-    ]
+    var VisitorStatistictems: [SectionItem] = []
 
     private func makeSections() -> [Section] {
         let sections: [Section] = [
             
             Section(type: .visitors, items: visortBoolItems),
             Section(type: .segment, items: segmentItems),
-            Section(type: .sexAge, items: SexAgeItems),
+            Section(type: .visitorStatistic, items: VisitorStatistictems),
             Section(type: .mostVisited, items: mostVisitedItems),
             Section(type: .sexAgeSegment, items: SexAgesegmentItems),
             Section(type: .observers, items: observerBoolItems),
@@ -101,8 +99,8 @@ public final class StatisticViewController: UIViewController {
             .subscribe(
                 onNext: { [weak self] (response: StatisticResponse) in
                     print("Получена статистика: \(response.statistics)")
-                    self?.SexAgeItems = [
-                        SectionItem.sexAge(SexAgeSection(statistic: response.statistics))
+                    self?.VisitorStatistictems = [
+                        SectionItem.visitorStatistic(visitorStatisticSection(statistic: response.statistics))
                     ]
 //                    self?.dispayData()
                 },
@@ -177,12 +175,11 @@ public final class StatisticViewController: UIViewController {
         collectionView.register(BoolCell.self, forCellWithReuseIdentifier: BoolCell.identifire)
         collectionView.register(VisitorCell.self, forCellWithReuseIdentifier: VisitorCell.identifire)
         collectionView.register(SegmentControlCell.self, forCellWithReuseIdentifier: SegmentControlCell.identifire)
-        collectionView.register(SexAgeCell.self, forCellWithReuseIdentifier: SexAgeCell.identifire)
+        collectionView.register(VisiterStaticticCell.self, forCellWithReuseIdentifier: VisiterStaticticCell.identifire)
         
         collectionView.register(SectionHeaderView.self,
                                 forSupplementaryViewOfKind: UICollectionView.elementKindSectionHeader,
                                 withReuseIdentifier: SectionHeaderView.reuseIdentifier)
-        
     }
     
     private func createDataSource(){
@@ -203,9 +200,9 @@ public final class StatisticViewController: UIViewController {
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: BoolCell.identifire, for: IndexPath) as? BoolCell
                     cell?.configure(isUP: visitor.isUp, number: visitor.numberOfVisitors, description: visitor.description, isLast: false)
                     return cell
-                case .sexAge(let sexAge):
-                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SexAgeCell.identifire, for: IndexPath) as? SexAgeCell
-                    cell?.configure(with: sexAge.statistic)
+                case .visitorStatistic(let visitorStatistic):
+                    let cell = collectionView.dequeueReusableCell(withReuseIdentifier: VisiterStaticticCell.identifire, for: IndexPath) as? VisiterStaticticCell
+                    cell?.configure(with: visitorStatistic.statistic)
                     return cell
                 case .observers(let observer):
                     let section = self.dataSource.snapshot().sectionIdentifiers[IndexPath.section]
@@ -262,7 +259,7 @@ public final class StatisticViewController: UIViewController {
                 return self.createMostVisitedSection()
             case .observers:
                 return self.createObserversSection()
-            case .sexAge:
+            case .visitorStatistic:
                 return self.createSexAgeSection()
             case .segment:
                 return self.createSegmentSection()

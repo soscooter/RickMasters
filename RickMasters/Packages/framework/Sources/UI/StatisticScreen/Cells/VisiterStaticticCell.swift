@@ -1,5 +1,5 @@
 //
-//  SexAgeCell.swift
+//  VisiterStaticticCell.swift
 //  framework
 //
 //  Created by Алексей Румынин on 27.05.25.
@@ -10,10 +10,10 @@ import Charts
 import PinLayout
 import DGCharts
 
-class SexAgeCell: UICollectionViewCell {
+class VisiterStaticticCell: UICollectionViewCell {
     
     private let chartsView: GraphView = GraphView()
-    static let identifire: String = "SexAgeCell"
+    static let identifire: String = "VisiterStaticticCell"
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -45,7 +45,6 @@ class SexAgeCell: UICollectionViewCell {
                 dateCounts[date] = (dateCounts[date] ?? 0) + 1
             }
         }
-        
         return dateCounts
     }
     

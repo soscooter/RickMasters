@@ -15,7 +15,7 @@ struct Section: Hashable{
 enum TypeOfSection{
     case visitors
     case mostVisited
-    case sexAge
+    case visitorStatistic
     case observers
     case segment
     case sexAgeSegment
@@ -24,7 +24,7 @@ enum TypeOfSection{
 enum SectionItem: Hashable{
     case visitor(VisitorSection)
     case mostVisited(MostVisitedSection)
-    case sexAge(SexAgeSection)
+    case visitorStatistic(visitorStatisticSection)
     case observers(VisitorSection)
     case segmentView(Segments)
     case sexAgeSegmentView(Segments)
@@ -35,8 +35,8 @@ enum SectionItem: Hashable{
             hasher.combine(visitor.id)
         case .mostVisited(let visiter):
             hasher.combine(visiter.id)
-        case .sexAge(let sexAge):
-            hasher.combine(sexAge.id)
+        case .visitorStatistic(let visitorStatistics):
+            hasher.combine(visitorStatistics.id)
         case .observers(let observer):
             hasher.combine(observer.id)
         case .segmentView(let segments):
@@ -65,7 +65,7 @@ struct MostVisitedSection:Hashable{
     let username: String
 }
 
-struct SexAgeSection:Hashable{
+struct visitorStatisticSection:Hashable{
     let id = UUID()
     let statistic: [Statistic]
 }
