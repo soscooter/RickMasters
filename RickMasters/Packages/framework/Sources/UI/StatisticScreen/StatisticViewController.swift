@@ -48,9 +48,7 @@ public final class StatisticViewController: UIViewController {
         SectionItem.segmentView(Segments(segments: ["Сегодня", "Неделя", "Месяц", "Все время"]))
     ]
     
-    let SexAgeItems: [SectionItem] = [
-        SectionItem.sexAge(SexAgeSection())
-      ]
+    var SexAgeItems: [SectionItem] = []
     
     var VisitorStatistictems: [SectionItem] = []
 
@@ -135,11 +133,12 @@ public final class StatisticViewController: UIViewController {
             .subscribe(
                 onNext: { [weak self] (response: UsersResponse) in
                     print("Получены пользователи: \(response.users)")
-                    var items: [SectionItem] = []
+                    var mostVisitedItems: [SectionItem] = []
                     response.users.forEach({ user in
-                        items.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
+                        mostVisitedItems.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
                     })
-                    self?.mostVisitedItems = items
+                    self?.mostVisitedItems = mostVisitedItems
+                    self?.SexAgeItems = [SectionItem.sexAge(SexAgeSection(users: response.users))]
                     self?.dispayData()
                 },
                 onError: { error in
@@ -224,6 +223,7 @@ public final class StatisticViewController: UIViewController {
                     return cell
                 case .sexAge(let sexAge):
                     let cell = collectionView.dequeueReusableCell(withReuseIdentifier: SexAgeCell.identifire, for: IndexPath) as? SexAgeCell
+                    cell?.configure(users: sexAge.users)
                     return cell
 
                 }

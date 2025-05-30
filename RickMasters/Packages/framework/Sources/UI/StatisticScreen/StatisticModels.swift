@@ -75,6 +75,7 @@ struct visitorStatisticSection:Hashable{
 }
 struct SexAgeSection:Hashable{
     let id = UUID()
+    let users: [User]
 }
 
 struct StatisticResponse: Codable {

@@ -27,7 +27,6 @@ class SexAgeCell: UICollectionViewCell {
         return view
     }()
     
-    
     private let maleLegend = UILabel()
     private let femaleLegend = UILabel()
     
@@ -36,10 +35,17 @@ class SexAgeCell: UICollectionViewCell {
         contentView.backgroundColor = .white
         contentView.layer.cornerRadius = 12
         setupViews()
-        
-        let mockMale = 40
-        let mockFemale = 60
-        configure(male: mockMale, female: mockFemale)
+
+        let users: [User] = [
+            User(age: 20, sex: .male),
+            User(age: 20, sex: .female),
+            User(age: 23, sex: .male),
+            User(age: 31, sex: .male),
+            User(age: 35, sex: .female),
+            User(age: 52, sex: .female),
+            // ...другие пользователи
+        ]
+        configure(users: users)
         
     }
     
@@ -128,19 +134,29 @@ class SexAgeCell: UICollectionViewCell {
         return result
     }
     
-    func configure(male: Int, female: Int) {
-        pieChart.configure(male: CGFloat(Int(Double(male))), female: CGFloat(Int(Double(female))))
-        maleLegend.text = "Мужчины \(male)%"
-        femaleLegend.text = "Женщины \(female)%"
-        let users: [User] = [
-            User(age: 20, sex: .male),
-            User(age: 20, sex: .female),
-            User(age: 23, sex: .male),
-            User(age: 31, sex: .male),
-            User(age: 35, sex: .female),
-            User(age: 52, sex: .female),
-            // ...другие пользователи
-        ]
+    func calculateGenderPercentage(users: [User]) -> (male: Int, female: Int) {
+            let totalCount = users.count
+            guard totalCount > 0 else { return (0, 0) }
+            
+            let maleCount = users.filter { $0.sex == .male }.count
+            let femaleCount = totalCount - maleCount
+            
+            let malePercentage = Int(round(Double(maleCount) / Double(totalCount) * 100))
+            let femalePercentage = Int(round(Double(femaleCount) / Double(totalCount) * 100))
+            
+            // Корректировка округления (если сумма не 100%)
+            if malePercentage + femalePercentage != 100 {
+                return (malePercentage, 100 - malePercentage)
+            }
+            
+            return (malePercentage, femalePercentage)
+        }
+    
+    func configure(users: [User]) {
+        let genders = calculateGenderPercentage(users: users)
+        pieChart.configure(male: CGFloat(genders.male), female: CGFloat(genders.female))
+        maleLegend.text = "Мужчины \(genders.male)%"
+        femaleLegend.text = "Женщины \(genders.female)%"
 
         let stats = calculateAgeGroupStats(users: users)
         ageChart.configure(with: stats)
@@ -155,7 +171,7 @@ final class GenderPieChartView: UIView {
     private let maleColor = UIColor(hex: "#FF2E00")
     private let femaleColor = UIColor(hex: "#FFAD8A")
     
-    private let lineWidth: CGFloat = 6
+    private let lineWidth: CGFloat = 7
     private let spacingAngle: CGFloat = .pi / 180 * 8
     
     func configure(male: CGFloat, female: CGFloat) {
@@ -219,12 +235,10 @@ final class AgeDistributionChartView: UIView {
     }
     
     private func setup() {
-        // Создаем строки для каждой возрастной группы
         for ageGroup in ageGroups {
             let rowView = UIView()
             addSubview(rowView)
             
-            // Лейбл возрастной группы (слева)
             let groupLabel = UILabel()
             groupLabel.text = ageGroup
             groupLabel.font = UIFont.gilroyExtraBold(ofSize: 13)
@@ -232,7 +246,6 @@ final class AgeDistributionChartView: UIView {
             groupLabel.textAlignment = .right
             rowView.addSubview(groupLabel)
             
-            // Контейнер для баров (справа от лейбла)
             let barsContainer = UIView()
             rowView.addSubview(barsContainer)
             
@@ -245,44 +258,37 @@ final class AgeDistributionChartView: UIView {
             guard index < rows.count else { break }
             
             let rowView = rows[index]
-            let barsContainer = rowView.subviews[1] // 0 - groupLabel, 1 - barsContainer
+            let barsContainer = rowView.subviews[1]
             
-            // Очищаем контейнер баров перед добавлением новых
             barsContainer.subviews.forEach { $0.removeFromSuperview() }
             
-            // Мужской бар (оранжевый)
             let maleBar = UIView()
             maleBar.backgroundColor = UIColor(hex: "#FF2E00")
             maleBar.layer.cornerRadius = 4
             maleBar.layer.masksToBounds = true
             barsContainer.addSubview(maleBar)
             
-            // Процент для мужчин (всегда показываем, даже 0%)
             let malePercent = UILabel()
             malePercent.text = "\(Int(round(stat.malePercent)))%"
             malePercent.font = UIFont.systemFont(ofSize: 10)
             malePercent.textColor = UIColor.black
             barsContainer.addSubview(malePercent)
             
-            // Женский бар (светло-оранжевый)
             let femaleBar = UIView()
-            femaleBar.backgroundColor = UIColor(hex: "#FFAD8A")
+            femaleBar.backgroundColor = UIColor(hex: "#F99963")
             femaleBar.layer.cornerRadius = 4
             femaleBar.layer.masksToBounds = true
             barsContainer.addSubview(femaleBar)
             
-            // Процент для женщин (всегда показываем, даже 0%)
             let femalePercent = UILabel()
             femalePercent.text = "\(Int(round(stat.femalePercent)))%"
             femalePercent.font = UIFont.systemFont(ofSize: 10)
             femalePercent.textColor = UIColor.black
             barsContainer.addSubview(femalePercent)
             
-            // Рассчитываем ширину баров (но не меньше minBarWidth)
             let maleWidth = max(minBarWidth, barMaxWidth * CGFloat(stat.malePercent / 100))
             let femaleWidth = max(minBarWidth, barMaxWidth * CGFloat(stat.femalePercent / 100))
             
-            // Расположение элементов
             maleBar.pin
                 .top(13)
                 .left(30)
@@ -308,7 +314,6 @@ final class AgeDistributionChartView: UIView {
                 .sizeToFit()
                 .vCenter(to: femaleBar.edge.vCenter)
             
-            // Если процент равен 0, делаем бар круглой точкой
             if stat.malePercent == 0 {
                 maleBar.pin.width(8).height(8)
                 maleBar.layer.cornerRadius = 4
@@ -324,25 +329,21 @@ final class AgeDistributionChartView: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         
-        // Распределяем строки с фиксированными отступами
         for (index, row) in rows.enumerated() {
             let groupLabel = row.subviews[0] as! UILabel
             let barsContainer = row.subviews[1]
             
-            // Позиционируем всю строку
             row.pin
                 .top(CGFloat(index) * rowHeight)
                 .horizontally(16) // Отступы слева и справа
                 .height(rowHeight)
             
-            // Лейбл возрастной группы (слева)
             groupLabel.pin
                 .left()
                 .width(groupLabelWidth)
                 .vCenter()
                 .height(16)
             
-            // Контейнер с барами (справа от лейбла)
             barsContainer.pin
                 .after(of: groupLabel)
                 .marginLeft(8)
