@@ -8,6 +8,7 @@
 import UIKit
 import PinLayout
 import RxSwift
+import RealmSwift
 
 public final class StatisticViewController: UIViewController {
     
@@ -75,17 +76,31 @@ public final class StatisticViewController: UIViewController {
         setupCollectionView()
         createDataSource()
         
-        updateUsers()
-        updateStatistics()
+        updateData()
+
     }
     
     @objc
-    private func updateData(){
-        updateUsers()
-        updateStatistics()
+    private func updateData() {
+        let realm = try! Realm()
+        
+        // Проверяем наличие данных в Realm
+        if let cachedUsersResponse = realm.objects(RealmUsersResponse.self).first {
+            processUsersResponse(cachedUsersResponse.toPlain())
+            print(cachedUsersResponse)
+        } else {
+            updateUsers()
+        }
+        
+        if let cachedStatsResponse = realm.objects(RealmStatisticResponse.self).first {
+            processStatsResponse(cachedStatsResponse.toPlain())
+        } else {
+            updateStatistics()
+        }
+        
         refreshControl.endRefreshing()
     }
-    
+
     private func updateStatistics() {
         struct GetStatisticRequest: APIRequest {
             var method: RequestType { return .GET }
@@ -101,11 +116,12 @@ public final class StatisticViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] (response: StatisticResponse) in
-                    print("Получена статистика: \(response.statistics)")
-                    self?.VisitorStatistictems = [
-                        SectionItem.visitorStatistic(visitorStatisticSection(statistic: response.statistics))
-                    ]
-//                    self?.dispayData()
+                    // Сохраняем в Realm
+                    let realm = try! Realm()
+                    try! realm.write {
+                        realm.add(RealmStatisticResponse(from: response))
+                    }
+                    self?.processStatsResponse(response)
                 },
                 onError: { error in
                     print("Ошибка: \(error.localizedDescription)")
@@ -116,8 +132,8 @@ public final class StatisticViewController: UIViewController {
             )
             .disposed(by: disposeBag)
     }
-    
-   private func updateUsers() {
+
+    private func updateUsers() {
         struct GetUsersRequest: APIRequest {
             var method: RequestType { return .GET }
             var path: String { return "users" }
@@ -132,14 +148,12 @@ public final class StatisticViewController: UIViewController {
             .observe(on: MainScheduler.instance)
             .subscribe(
                 onNext: { [weak self] (response: UsersResponse) in
-                    print("Получены пользователи: \(response.users)")
-                    var mostVisitedItems: [SectionItem] = []
-                    response.users.forEach({ user in
-                        mostVisitedItems.append(SectionItem.mostVisited(MostVisitedSection(imageUrl: user.files.first!.url, username: user.username)))
-                    })
-                    self?.mostVisitedItems = mostVisitedItems
-                    self?.SexAgeItems = [SectionItem.sexAge(SexAgeSection(users: response.users))]
-                    self?.dispayData()
+                    // Сохраняем в Realm
+                    let realm = try! Realm()
+                    try! realm.write {
+                        realm.add(RealmUsersResponse(from: response))
+                    }
+                    self?.processUsersResponse(response)
                 },
                 onError: { error in
                     print("Ошибка: \(error.localizedDescription)")
@@ -149,6 +163,28 @@ public final class StatisticViewController: UIViewController {
                 }
             )
             .disposed(by: disposeBag)
+    }
+
+    // Обработка данных пользователей
+    private func processUsersResponse(_ response: UsersResponse) {
+        var mostVisitedItems: [SectionItem] = []
+        response.users.forEach { user in
+            mostVisitedItems.append(SectionItem.mostVisited(MostVisitedSection(
+                imageUrl: user.files.first?.url ?? "",
+                username: user.username
+            )))
+        }
+        self.mostVisitedItems = mostVisitedItems
+        self.SexAgeItems = [SectionItem.sexAge(SexAgeSection(users: response.users))]
+        self.dispayData()
+    }
+
+    // Обработка статистики
+    private func processStatsResponse(_ response: StatisticResponse) {
+        self.VisitorStatistictems = [
+            SectionItem.visitorStatistic(visitorStatisticSection(statistic: response.statistics))
+        ]
+        self.dispayData()
     }
     
     
